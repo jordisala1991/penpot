@@ -1481,6 +1481,29 @@
                 (assoc attr (get origin attr)))))
           dest))))
 
+
+;;todo move to file
+(defn get-component-shape-by-swap-id
+  "Retrieve one shape in the component by swap-id."
+  [file-data component swap-id]
+  ;;todo deleted components
+  (let [component-page (ctf/get-component-page file-data component)
+        shapes (cfh/get-children-with-self (:objects component-page) (:main-instance-id component))]
+    (->> shapes
+         (filter #(or
+                   (= (:id %) swap-id)
+                   (= (ctk/get-swap-slot %) swap-id)))
+         first)))
+
+;;todo move to file
+(defn get-shape-by-swap-slot
+  "Retrieve the shape in the component that is referenced by the swap slot of the instance shape."
+  [file-data component shape]
+  (let [swap-slot (ctk/get-swap-slot shape)]
+    (when swap-slot
+      (get-component-shape-by-swap-id file-data component swap-slot))))
+
+
 (defn- update-flex-child-copy-attrs
   "Synchronizes the attributes inside the flex-child items (main->copy)"
   [changes _shape-main shape-copy main-container main-component copy-container omit-touched?]
@@ -1491,7 +1514,9 @@
             (pcb/update-shapes
              (:shapes shape-copy)
              (fn [child-copy]
-               (let [child-main (ctf/get-ref-shape main-container main-component child-copy)]
+               (let [child-main (or (ctf/get-ref-shape main-container main-component child-copy)
+                                    (get-shape-by-swap-slot main-container main-component child-copy))
+                     _ (prn "child-main" child-main)]
                  (-> child-copy
                      (propagate-attrs child-main ctk/swap-keep-attrs omit-touched?))))
              {:ignore-touched true}))]
