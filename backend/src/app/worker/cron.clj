@@ -135,7 +135,7 @@
           cfg     (assoc cfg ::entries entries ::running running)]
 
       (l/inf :hint "started" :tasks (count entries))
-      (synchronize-cron-entries! cfg)
+      #_(synchronize-cron-entries! cfg)
 
       (->> (filter some? entries)
            (run! (partial schedule-cron-task cfg)))
