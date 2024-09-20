@@ -262,13 +262,14 @@
 
   (export [_]
     (js/Promise.
-     (fn [resolve _reject]
+     (fn [resolve reject]
        (-> (export-file file)
            (rx/subscribe
             (fn [value]
               (when (not (contains? value :type))
                 (let [[_ export-blob] value]
-                  (resolve export-blob))))))))))
+                  (resolve export-blob))))
+            reject))))))
 
 (defn create-file-export [^string name]
   (binding [cfeat/*current* cfeat/default-features]
